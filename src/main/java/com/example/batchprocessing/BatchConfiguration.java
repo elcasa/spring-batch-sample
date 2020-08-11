@@ -2,8 +2,9 @@ package com.example.batchprocessing;
 
 import javax.sql.DataSource;
 
+import com.example.batchprocessing.model.Person;
+import com.example.batchprocessing.step.PersonItemProcessor;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -15,13 +16,10 @@ import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilde
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 // tag::setup[]
 @Configuration
@@ -54,6 +52,10 @@ public class BatchConfiguration {
 		return new PersonItemProcessor();
 	}
 
+	public PersonItemProcessor processor(String reportName) {
+		return new PersonItemProcessor(reportName);
+	}
+
 	@Bean
 	public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
 		return new JdbcBatchItemWriterBuilder<Person>()
@@ -80,7 +82,7 @@ public class BatchConfiguration {
 		return stepBuilderFactory.get("step1")
 			.<Person, Person> chunk(10)
 			.reader(reader())
-			.processor(processor())
+			.processor(processor("rep1"))
 			.writer(writer)
 			.build();
 	}
